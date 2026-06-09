@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>2Clicks Demo — Gerador de Propostas</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap');
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --surface2: #181818;
+  --surface3: #202020;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --text: #f0ede8;
+  --text2: #a09a92;
+  --text3: #5a5550;
+  --orange: #e8a020;
+  --orange-bg: rgba(232,160,32,0.10);
+  --orange-bd: rgba(232,160,32,0.25);
+  --blue: #4a90d9;
+  --blue-bg: rgba(74,144,217,0.10);
+  --green: #3dab72;
+  --green-bg: rgba(61,171,114,0.10);
+  --green-bd: rgba(61,171,114,0.25);
+  --purple: #9b7ce6;
+  --purple-bg: rgba(155,124,230,0.10);
+  --red: #e85050;
+  --red-bg: rgba(232,80,80,0.10);
+  --red-bd: rgba(232,80,80,0.25);
+  /* Cockpit Colors */
+  --cockpit-dark: #0a1428;
+  --cockpit-cyan: #00d4ff;
+  --cockpit-blue: #0088ff;
+  --cockpit-teal: #00d4d4;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-family:'Barlow',sans-serif}
+
+/* PHONE SHELL */
+.phone-shell {
+  width: 393px;
+  height: 852px;
+  background: #0a0a0a;
+  border-radius: 44px;
+  box-shadow: 0 0 0 10px #2a2a2a, 0 0 0 12px #333, 0 40px 80px rgba(0,0,0,0.7);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* STATUS BAR */
+.status-bar {
+  height: 44px;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px 0 32px;
+  flex-shrink: 0;
+}
+.status-time { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+.status-icons { display: flex; align-items: center; gap: 6px; }
+.status-icons svg { width: 16px; height: 11px; }
+
+/* TOPBAR */
+.topbar{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;background:var(--bg);flex-shrink:0}
+.logo-icon{width:28px;height:28px;background:var(--orange);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:15px;height:15px}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase}
+.logo-text span{color:var(--orange)}
+.topbar-page{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text);margin-left:auto}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex-shrink:0}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:68px;color:var(--text)}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+
+/* TABS */
+.tab{display:none}
+.tab.active{display:block}
+
+/* BOTTOM NAV */
+.bottom-nav{height:60px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border:none;background:none;padding:0;transition:color 0.15s}
+.bn-item svg{width:17px;height:17px}
+.bn-item.active{color:var(--orange)}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.kpi-label{font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;line-height:1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* FILTERS */
+.filters{padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:140px}
+.search-wrap input{width:100%;padding:7px 10px 7px 30px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;border-radius:6px;outline:none}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none}
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.pill.active{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-bd)}
+
+/* TABLE */
+.table-card{margin:0 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-topbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)}
+.table-count{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--orange)}
+.tbl{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;line-height:1.2}
+.tbl th{padding:5px 6px;text-align:left;font-size:7px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);white-space:normal;word-break:break-word}
+.tbl td{padding:6px 6px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,0.03);word-break:break-word;overflow-wrap:break-word;line-height:1.2}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+.td-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text);font-weight:600;width:50px;flex-shrink:0}
+.td-empresa{color:var(--text);font-weight:500;min-width:70px;font-size:10px}
+.td-servico{font-size:9px;color:var(--text2)}
+.td-val{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--orange);font-weight:600}
+.td-tempo{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text2);min-width:40px;text-align:right;font-weight:500}
+.s-pill{display:inline-flex;align-items:center;padding:3px 7px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.s-aprovada{background:rgba(61,171,114,0.12);color:var(--green)}
+.s-enviada{background:rgba(74,144,217,0.12);color:var(--blue)}
+.s-aberto{background:rgba(232,160,32,0.12);color:var(--orange)}
+.s-rascunho{background:rgba(90,85,80,0.2);color:var(--text3)}
+
+/* SECTION HEADS */
+.sec-head{display:flex;align-items:center;gap:8px;padding:14px 14px 10px}
+.sec-label{font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3)}
+.sec-line{flex:1;height:1px;background:var(--border)}
+
+/* CARDS */
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
+.doc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.doc-card-icon{width:30px;height:30px;border-radius:7px;background:var(--orange-bg);color:var(--orange);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.doc-card-icon svg{width:15px;height:15px}
+.doc-card-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.doc-card-desc{font-size:10px;color:var(--text3);margin-bottom:10px}
+.doc-card-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:7px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--orange-bd);background:var(--orange-bg);color:var(--orange);cursor:pointer}
+
+/* FORM */
+.form-section{margin:0 14px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.form-section-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.form-section-title span{font-size:10px;font-weight:700;color:var(--orange);background:var(--orange-bg);padding:1px 5px;border-radius:3px}
+.form-row{display:grid;gap:10px;margin-bottom:10px}
+.form-row.cols2{grid-template-columns:1fr 1fr}
+.form-field label{display:block;font-size:10px;color:var(--text2);margin-bottom:3px;letter-spacing:0.04em;text-transform:uppercase;font-weight:500}
+.form-field input,.form-field select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:12px;padding:8px 10px;border-radius:6px;outline:none}
+.form-field input::placeholder{color:var(--text3)}
+.form-field select option{background:#181818}
+.calc-box{margin:0 14px 12px;background:var(--surface2);border:1px solid var(--orange-bd);border-radius:var(--radius);padding:14px}
+.calc-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.calc-label::before{content:'';display:inline-block;width:5px;height:5px;background:var(--orange);border-radius:50%}
+.calc-formula{font-family:'SF Mono',Monaco,monospace;font-size:10px;color:var(--text2);line-height:1.8}
+.calc-formula .v{color:var(--text)}
+.calc-total-row{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;border-top:1px solid var(--border);margin-top:10px}
+.calc-total-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em}
+.calc-total-value{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--orange)}
+.submit-btn{margin:0 14px 14px;width:calc(100% - 28px);padding:12px;background:var(--orange);color:#0a0a0a;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer}
+.submit-btn:hover{background:#f0b030}
+
+/* COCKPIT STYLES */
+.cockpit-container {
+  padding: 12px 14px;
+  background: var(--cockpit-dark);
+}
+
+.cockpit-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cockpit-cyan);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cockpit-header::before {
+  content: '⬢';
+  color: var(--cockpit-cyan);
+  font-size: 9px;
+}
+
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cockpit-metric {
+  background: linear-gradient(135deg, rgba(0, 136, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cockpit-metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cockpit-cyan), transparent);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+.cockpit-metric-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 212, 255, 0.7);
+  margin-bottom: 6px;
+}
+
+.cockpit-metric-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cockpit-cyan);
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
+  line-height: 1;
+}
+
+.cockpit-chart-container {
+  background: linear-gradient(135deg, rgba(0, 136, 255, 0.08) 0%, rgba(0, 212, 255, 0.03) 100%);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cockpit-chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+}
+
+.cockpit-chart {
+  position: relative;
+  height: 150px;
+  z-index: 1;
+}
+
+.cockpit-info {
+  font-size: 9px;
+  color: rgba(0, 212, 255, 0.6);
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 136, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+/* TOAST */
+.toast{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--green-bd);color:var(--green);padding:10px 18px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* HINT */
+.demo-hint{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(232,160,32,0.15);border:1px solid var(--orange-bd);color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 16px;border-radius:20px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="demo-hint">⚡ Demo · Dados fictícios · Ctrl+Shift+M para DevTools mobile</div>
+
+<div class="phone-shell">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="1" opacity="0.5"/><rect x="9" y="0" width="3" height="12" rx="1" opacity="0.7"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M8 2.5C10.2 2.5 12.2 3.4 13.6 4.9L15 3.5C13.2 1.7 10.7.5 8 .5S2.8 1.7 1 3.5l1.4 1.4C3.8 3.4 5.8 2.5 8 2.5z" fill="white" opacity="0.5"/><path d="M8 5.5c1.4 0 2.6.6 3.5 1.5L13 5.5C11.7 4.2 9.9 3.5 8 3.5S4.3 4.2 3 5.5l1.5 1.5C5.4 6.1 6.6 5.5 8 5.5z" fill="white" opacity="0.75"/><circle cx="8" cy="10" r="1.5" fill="white"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4.5v3a2 2 0 000-3z" fill="white" fill-opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo-icon">
+      <svg viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0a0a0a"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="#0a0a0a" opacity="0.6"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="#0a0a0a" opacity="0.6"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="#0a0a0a" opacity="0.3"/></svg>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">2<span style="color:var(--orange)">Clicks</span></div>
+    <div style="font-size:9px;color:var(--orange);letter-spacing:0.04em;margin-left:2px;margin-top:1px;font-weight:600">Demo</div>
+    <div class="topbar-page" id="topbar-page">Monitoramento</div>
+    <div class="live-dot"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- MONITORAMENTO -->
+    <div id="tab-monitoramento" class="tab active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total</div>
+          <div class="kpi-value" style="color:var(--orange)" id="k-total">—</div>
+          <div class="kpi-sub" id="k-total-sub">propostas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Aprovadas</div>
+          <div class="kpi-value" style="color:var(--green)" id="k-aprov">—</div>
+          <div class="kpi-sub">contratos fechados</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxa Aprovação</div>
+          <div class="kpi-value" style="color:var(--blue)" id="k-taxa">—</div>
+          <div class="kpi-sub">aprovadas ÷ enviadas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Valor Total</div>
+          <div class="kpi-value" style="font-size:18px;margin-top:4px;" id="k-valor">—</div>
+          <div class="kpi-sub">em propostas</div>
+        </div>
+      </div>
+      <div class="filters">
+        <div class="search-wrap">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#5a5550" stroke-width="1.3"/><path d="M9 9l2 2" stroke="#5a5550" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input id="mf-search" placeholder="Empresa, serviço…" oninput="applyFilters()" />
+        </div>
+        <div class="pills">
+          <span class="pill active" data-status="" onclick="setPill(this)">Todos</span>
+          <span class="pill" data-status="Aprovada" onclick="setPill(this)">Aprov.</span>
+          <span class="pill" data-status="Enviada" onclick="setPill(this)">Enviad.</span>
+          <span class="pill" data-status="Link aberto" onclick="setPill(this)">Vistos</span>
+          <span class="pill" data-status="Rascunho" onclick="setPill(this)">Rascun.</span>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-topbar">
+          <span class="table-title">Detalhamento</span>
+          <span class="table-count" id="tbl-count">0 registros</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl" style="width:100%">
+            <thead><tr><th style="width:50px">Prop.</th><th style="width:80px;min-width:80px">Empresa</th><th style="width:60px">Serviço</th><th style="width:70px">Valor</th><th style="width:60px">Status</th><th style="width:40px;text-align:right">Tempo</th></tr></thead>
+            <tbody id="mf-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVA PROPOSTA -->
+    <div id="tab-novaproposta" class="tab">
+      <div style="padding:12px 14px 0">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--text)">Nova Proposta</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Preencha os campos. Valor calculado ao vivo.</div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="form-section">
+        <div class="form-section-title"><span>1</span> Tipo e dados básicos</div>
+        <div class="form-row cols2">
+          <div class="form-field">
+            <label>Tipo de serviço</label>
+            <select id="np-tipo" onchange="calcularAoVivo()">
+              <option value="RIT">Serviço 1</option><option value="EIV">Serviço 2</option><option value="EIV/RIT">Serviço 3</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Cidade</label>
+            <input type="text" id="np-cidade" placeholder="Campinas" oninput="calcularAoVivo()" />
+          </div>
+        </div>
+        <div class="form-row cols2">
+          <div class="form-field">
+            <label>Empresa</label>
+            <input type="text" id="np-empresa" placeholder="Empresa Ltda." />
+          </div>
+          <div class="form-field">
+            <label>Contato</label>
+            <input type="text" id="np-contato" placeholder="Nome completo" />
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title"><span>2</span> Critérios de precificação</div>
+        <div class="form-row cols2">
+          <div class="form-field">
+            <label>Atividade</label>
+            <select id="np-ativ" onchange="calcularAoVivo()">
+              <option value="0.8">Residencial (0.8)</option>
+              <option value="1.0" selected>Comercial (1.0)</option>
+              <option value="1.2">Industrial (1.2)</option>
+              <option value="1.4">Especial (1.4)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Área construída</label>
+            <select id="np-area" onchange="calcularAoVivo()">
+              <option value="0.6">Até 5.000m²</option>
+              <option value="0.8" selected>5–15 mil m²</option>
+              <option value="1.0">15–30 mil m²</option>
+              <option value="1.3">+30 mil m²</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Tipo</label>
+            <select id="np-tipo2" onchange="calcularAoVivo()">
+              <option value="0.8">Simples</option>
+              <option value="1.0" selected>Padrão</option>
+              <option value="1.2">Complexo</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Distância</label>
+            <select id="np-dist" onchange="calcularAoVivo()">
+              <option value="0.8">Local</option>
+              <option value="1.0" selected>Regional</option>
+              <option value="1.2">Distante</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="calc-box">
+        <div class="calc-label">Cálculo ao vivo</div>
+        <div class="calc-formula" id="np-calc-formula">—</div>
+        <div class="calc-total-row">
+          <span class="calc-total-label">Valor total</span>
+          <span class="calc-total-value" id="np-total">R$ 0,00</span>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="simularEnvio()">Criar proposta</button>
+    </div>
+
+    <!-- PROPOSTAS -->
+    <div id="tab-propostas" class="tab">
+      <div class="sec-head"><span class="sec-label">Pastas de documentos</span><div class="sec-line"></div></div>
+      <div class="card-grid">
+        <div class="doc-card"><div class="doc-card-icon"><svg viewBox="0 0 17 17" fill="none"><path d="M2 4.5A1.5 1.5 0 013.5 3h3l1.5 2H13.5A1.5 1.5 0 0115 6.5v6A1.5 1.5 0 0113.5 14h-10A1.5 1.5 0 012 12.5v-8z" stroke="currentColor" stroke-width="1.4"/></svg></div><div class="doc-card-title">Aprovadas</div><div class="doc-card-desc">Propostas aprovadas</div><div class="doc-card-btn">Abrir</div></div>
+        <div class="doc-card"><div class="doc-card-icon"><svg viewBox="0 0 17 17" fill="none"><path d="M2 4.5A1.5 1.5 0 013.5 3h3l1.5 2H13.5A1.5 1.5 0 0115 6.5v6A1.5 1.5 0 0113.5 14h-10A1.5 1.5 0 012 12.5v-8z" stroke="currentColor" stroke-width="1.4"/></svg></div><div class="doc-card-title">Editáveis</div><div class="doc-card-desc">Em edição</div><div class="doc-card-btn">Abrir</div></div>
+        <div class="doc-card"><div class="doc-card-icon"><svg viewBox="0 0 17 17" fill="none"><path d="M2 4.5A1.5 1.5 0 013.5 3h3l1.5 2H13.5A1.5 1.5 0 0115 6.5v6A1.5 1.5 0 0113.5 14h-10A1.5 1.5 0 012 12.5v-8z" stroke="currentColor" stroke-width="1.4"/></svg></div><div class="doc-card-title">PDFs</div><div class="doc-card-desc">Versões finais</div><div class="doc-card-btn">Abrir</div></div>
+        <div class="doc-card"><div class="doc-card-icon"><svg viewBox="0 0 17 17" fill="none"><path d="M2 4.5A1.5 1.5 0 013.5 3h3l1.5 2H13.5A1.5 1.5 0 0115 6.5v6A1.5 1.5 0 0113.5 14h-10A1.5 1.5 0 012 12.5v-8z" stroke="currentColor" stroke-width="1.4"/></svg></div><div class="doc-card-title">Templates</div><div class="doc-card-desc">Modelos</div><div class="doc-card-btn">Abrir</div></div>
+      </div>
+    </div>
+
+    <!-- CHARTS (STRATEGIC) -->
+    <div id="tab-charts" class="tab">
+      <div style="padding:12px 14px">
+
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">📊 Análise Estratégica</div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Em Aberto</div>
+            <div class="kpi-value" style="color:var(--blue)" id="cp-aberto">5</div>
+            <div class="kpi-sub">clique no gráfico</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Enviadas</div>
+            <div class="kpi-value" style="color:var(--orange)" id="cp-enviada">3</div>
+            <div class="kpi-sub">aguardando retorno</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Aprovadas</div>
+            <div class="kpi-value" style="color:var(--green)" id="cp-aprov">4</div>
+            <div class="kpi-sub">contratos fechados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Valor Total</div>
+            <div class="kpi-value" style="font-size:18px" id="cp-valor">R$250k</div>
+            <div class="kpi-sub">em propostas</div>
+          </div>
+        </div>
+
+        <!-- Chart 1: Revenue by City (Interactive) -->
+        <div style="margin-top:12px">
+          <div class="sec-head"><span class="sec-label">1 · Receita por Cidade</span><div class="sec-line"></div></div>
+          <div class="table-card">
+            <div style="padding:10px 14px;height:280px">
+              <canvas id="chart-city"></canvas>
+            </div>
+          </div>
+          <div id="city-modal" style="display:none;background:var(--surface2);border-top:1px solid var(--border);padding:14px;margin-top:0;border-radius:0 0 var(--radius) var(--radius)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--orange)" id="city-modal-title">CAMPINAS - EIV</div>
+              <button onclick="document.getElementById('city-modal').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">×</button>
+            </div>
+            <div id="city-modal-content" style="font-size:10px">
+              <div style="display:grid;grid-template-columns:60px 1fr 70px 60px 80px;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+                <div style="font-weight:700;color:var(--text3);font-size:9px;text-transform:uppercase">Prop.</div>
+                <div style="font-weight:700;color:var(--text3);font-size:9px;text-transform:uppercase">Empresa</div>
+                <div style="font-weight:700;color:var(--text3);font-size:9px;text-transform:uppercase;text-align:right">Valor</div>
+                <div style="font-weight:700;color:var(--text3);font-size:9px;text-transform:uppercase;text-align:center">Status</div>
+                <div style="font-weight:700;color:var(--text3);font-size:9px;text-transform:uppercase;text-align:right">Resp.</div>
+              </div>
+              <div id="city-proposals"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart 2: Service Type Revenue (Interactive) -->
+        <div style="margin-top:12px">
+          <div class="sec-head"><span class="sec-label">2 · Receita por Serviço</span><div class="sec-line"></div></div>
+          <div class="table-card">
+            <div style="padding:10px 14px;height:220px">
+              <canvas id="chart-service"></canvas>
+            </div>
+          </div>
+          <div style="font-size:9px;color:var(--text3);padding:8px 14px;text-align:center">💡 Duplo clique para detalhar</div>
+        </div>
+
+        <!-- Chart 3: Status Distribution (Interactive) -->
+        <div style="margin-top:12px;margin-bottom:12px">
+          <div class="sec-head"><span class="sec-label">3 · Status das Propostas</span><div class="sec-line"></div></div>
+          <div class="table-card">
+            <div style="padding:10px 14px;height:220px">
+              <canvas id="chart-status"></canvas>
+            </div>
+          </div>
+          <div style="font-size:9px;color:var(--text3);padding:8px 14px;text-align:center">💡 Clique para filtrar por status</div>
+        </div>
+
+        <!-- Modal para mostrar propostas -->
+        <div id="modal-propostas" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:1000;overflow:auto;padding:20px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;max-width:300px;margin:20px auto;color:var(--text)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase" id="modal-title">Propostas</div>
+              <button onclick="closeModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer">×</button>
+            </div>
+            <div id="modal-content" style="font-size:11px;max-height:300px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="bn-item active" onclick="switchTab('monitoramento',this)">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>Monit.
+    </button>
+    <button class="bn-item" onclick="switchTab('novaproposta',this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Nova
+    </button>
+    <button class="bn-item" onclick="switchTab('propostas',this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4"/></svg>Prop.
+    </button>
+    <button class="bn-item" onclick="switchTab('charts',this)">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="8" width="3" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="6.5" y="4" width="3" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="2" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>Gráfs.
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+</div><!-- /phone-shell -->
+
+<script>
+const DADOS = [
+  { id:'Sal8412026', empresa:'Construtora Almeida', cliente:'Roberto Almeida', cidade:'Campinas', servico:'RIT', valor:18500, enviadaEm:'05/05/26 09:14:00', status:'Aprovada', aprovadaEm:'07/05/26 14:30:00' },
+  { id:'Sal8402026', empresa:'Empreend. Viva Mais', cliente:'Juliana Costa', cidade:'Paulínia', servico:'EIV', valor:24800, enviadaEm:'04/05/26 11:02:00', status:'Enviada', aprovadaEm:'' },
+  { id:'Sal8392026', empresa:'Grupo Horizonte', cliente:'Marcos Lima', cidade:'Sumaré', servico:'EIV/RIT', valor:38200, enviadaEm:'03/05/26 08:45:00', status:'Link aberto', aprovadaEm:'' },
+  { id:'Sal8382026', empresa:'Engefácil Ltda', cliente:'Ana Paula Ramos', cidade:'Campinas', servico:'RIT', valor:15600, enviadaEm:'01/05/26 16:20:00', status:'Aprovada', aprovadaEm:'02/05/26 10:05:00' },
+  { id:'Sal8372026', empresa:'MRV Engenharia', cliente:'Pedro Ferreira', cidade:'Americana', servico:'RIT', valor:21300, enviadaEm:'30/04/26 14:50:00', status:'Aprovada', aprovadaEm:'03/05/26 09:00:00' },
+  { id:'Sal8362026', empresa:'Tenda Incorporadora', cliente:'Carla Mendes', cidade:'Indaiatuba', servico:'EIV', valor:19700, enviadaEm:'29/04/26 10:30:00', status:'Enviada', aprovadaEm:'' },
+  { id:'Sal8352026', empresa:'Direcional Eng.', cliente:'Lucas Barbosa', cidade:'Campinas', servico:'EIV/RIT', valor:8900, enviadaEm:'', status:'Rascunho', aprovadaEm:'' },
+  { id:'Sal8342026', empresa:'Calçada Urbana', cliente:'Fernanda Silva', cidade:'Valinhos', servico:'RIT', valor:16400, enviadaEm:'28/04/26 09:15:00', status:'Link aberto', aprovadaEm:'' },
+  { id:'Sal8332026', empresa:'Trisul SA', cliente:'Eduardo Nunes', cidade:'Campinas', servico:'EIV/RIT', valor:44500, enviadaEm:'25/04/26 11:00:00', status:'Aprovada', aprovadaEm:'28/04/26 16:45:00' },
+  { id:'Sal8322026', empresa:'Plano&Plano', cliente:'Patricia Souza', cidade:'Hortolândia', servico:'EIV', valor:22100, enviadaEm:'24/04/26 14:20:00', status:'Enviada', aprovadaEm:'' },
+];
+
+let FILTERED = [...DADOS], STATUS_FILTER = '';
+const PAGE_NAMES = { monitoramento:'Monitoramento', novaproposta:'Nova Proposta', propostas:'Propostas', charts:'Análise Cockpit' };
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('topbar-page').textContent = PAGE_NAMES[name];
+  document.querySelector('.content').scrollTop = 0;
+
+  if(name === 'charts') {
+    setTimeout(initCharts, 100);
+  }
+}
+
+function fmtBRL(v) { return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function statusCSS(s) { return {Aprovada:'s-aprovada',Enviada:'s-enviada','Link aberto':'s-aberto',Rascunho:'s-rascunho'}[s]||'s-rascunho'; }
+
+function setPill(el) {
+  document.querySelectorAll('#tab-monitoramento .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  STATUS_FILTER = el.dataset.status;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q=(document.getElementById('mf-search').value||'').toLowerCase();
+  FILTERED=DADOS.filter(r=>{
+    if(STATUS_FILTER&&r.status!==STATUS_FILTER) return false;
+    if(q){const s=(r.empresa+' '+r.servico+' '+r.cidade+' '+r.id).toLowerCase();if(!s.includes(q))return false;}
+    return true;
+  });
+  renderKPIs(); renderTable();
+}
+
+function renderKPIs() {
+  const total=FILTERED.length, aprov=FILTERED.filter(r=>r.status==='Aprovada').length;
+  const env=FILTERED.filter(r=>r.status==='Enviada').length, vis=FILTERED.filter(r=>r.status==='Link aberto').length;
+  const denom=aprov+env+vis, taxa=denom>0?(aprov/denom*100).toFixed(0):0;
+  const valor=FILTERED.reduce((s,r)=>s+r.valor,0);
+  document.getElementById('k-total').textContent=total;
+  document.getElementById('k-total-sub').textContent=total===1?'proposta':'propostas';
+  document.getElementById('k-aprov').textContent=aprov;
+  document.getElementById('k-taxa').textContent=taxa+'%';
+  document.getElementById('k-valor').textContent=fmtBRL(valor);
+}
+
+function renderTable() {
+  const agora=new Date();
+  function parseBR(s){if(!s)return null;const m=s.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/);if(!m)return null;return new Date(2000+parseInt(m[3]),parseInt(m[2])-1,parseInt(m[1]),parseInt(m[4]),parseInt(m[5]));}
+  document.getElementById('tbl-count').textContent=FILTERED.length+' registro'+(FILTERED.length!==1?'s':'');
+  document.getElementById('mf-tbody').innerHTML=FILTERED.map(r=>{
+    let tc='<td class="td-tempo">—</td>';
+    if(r.status==='Enviada'&&r.enviadaEm){const dE=parseBR(r.enviadaEm);if(dE){const diff=agora-dE,d=Math.round(diff/86400000),h=Math.round(diff/3600000);const label=d>=1?d+'d':h+'h';const cor=d>=3?'var(--red)':d>=1?'var(--orange)':'var(--green)';tc=`<td class="td-tempo" style="color:${cor};font-weight:700">${label}</td>`;}}
+    else if(r.status==='Aprovada'&&r.enviadaEm&&r.aprovadaEm){const dE=parseBR(r.enviadaEm),dA=parseBR(r.aprovadaEm);if(dE&&dA){const d=Math.round((dA-dE)/86400000);const cor=d<=3?'var(--green)':d<=7?'var(--orange)':'var(--red)';tc=`<td class="td-tempo" style="color:${cor};font-weight:700">${d}d</td>`;}}
+    const srvMap = {RIT:'Serviço 1', EIV:'Serviço 2', 'EIV/RIT':'Serviço 3'};
+    const srvLabel = srvMap[r.servico] || r.servico;
+    return `<tr><td class="td-num">${r.id.replace('Sal','').replace('2026','')}</td><td class="td-empresa" title="${r.empresa}">${r.empresa}</td><td class="td-servico">${srvLabel}</td><td class="td-val">${fmtBRL(r.valor)}</td><td><span class="s-pill ${statusCSS(r.status)}">${r.status}</span></td>${tc}</tr>`;
+  }).join('');
+}
+
+const BASES={RIT:14000,EIV:18000,'EIV/RIT':28000,EMDEC:12000,OUTROS:8000};
+function calcularAoVivo(){
+  const tipo=document.getElementById('np-tipo').value, base=BASES[tipo]||14000;
+  const ativ=parseFloat(document.getElementById('np-ativ').value)||1;
+  const area=parseFloat(document.getElementById('np-area').value)||0.8;
+  const tip=parseFloat(document.getElementById('np-tipo2').value)||1;
+  const dist=parseFloat(document.getElementById('np-dist').value)||1;
+  const cidade=(document.getElementById('np-cidade').value||'').trim().toLowerCase();
+  const pc=cidade==='campinas'?0.9:cidade?0.7:0;
+  const soma=ativ+area+tip+dist+pc, total=Math.round(base*soma);
+  document.getElementById('np-calc-formula').innerHTML=`Base: <span class="v">R$ ${base.toLocaleString('pt-BR')}</span><br>Pesos: ativ <span class="v">${ativ}</span> + área <span class="v">${area}</span> + tipo <span class="v">${tip}</span> + dist <span class="v">${dist}</span> + cidade <span class="v">${pc||'—'}</span> = <span class="v">${soma.toFixed(1)}</span><br>Total: <span class="v">R$ ${total.toLocaleString('pt-BR')}</span>`;
+  document.getElementById('np-total').textContent='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
+calcularAoVivo();
+
+function simularEnvio(){
+  const emp=document.getElementById('np-empresa').value.trim();
+  if(!emp){showToast('⚠ Empresa obrigatória');return;}
+  showToast('✓ Proposta criada em modo demo!');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ──────────────────────────────
+// INTERACTIVE STRATEGIC CHARTS
+// ──────────────────────────────
+
+let charts = {};
+let chartData = {};
+
+function closeModal() {
+  document.getElementById('modal-propostas').style.display = 'none';
+}
+
+function showCityProposals(city, servico, title) {
+  const propostas = DADOS.filter(d => d.cidade === city && d.servico === servico);
+  const modal = document.getElementById('city-modal');
+  const modalTitle = document.getElementById('city-modal-title');
+  const modalContent = document.getElementById('city-proposals');
+
+  modalTitle.textContent = title.toUpperCase();
+
+  if(propostas.length === 0) {
+    modalContent.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Nenhuma proposta encontrada</div>';
+  } else {
+    modalContent.innerHTML = propostas.map(p => `
+      <div style="display:grid;grid-template-columns:60px 1fr 70px 60px 80px;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center">
+        <div style="color:var(--orange);font-weight:600;font-size:11px">${p.id.replace('Sal','').replace('2026','')}</div>
+        <div style="color:var(--text);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.empresa}">${p.empresa}</div>
+        <div style="color:var(--orange);font-weight:600;font-size:10px;text-align:right">R$${(p.valor/1000).toFixed(0)}k</div>
+        <div style="text-align:center"><span class="s-pill ${statusCSS(p.status)}" style="font-size:8px">${p.status}</span></div>
+        <div style="color:var(--text3);font-size:9px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.cliente}</div>
+      </div>
+    `).join('');
+  }
+
+  modal.style.display = 'block';
+}
+
+function showPropostas(filtro, valor) {
+  const propostas = DADOS.filter(d => filtro(d));
+  const modal = document.getElementById('modal-propostas');
+  const modalTitle = document.getElementById('modal-title');
+  const modalContent = document.getElementById('modal-content');
+
+  modalTitle.textContent = valor || 'Propostas';
+  modalContent.innerHTML = propostas.length === 0
+    ? '<div style="padding:10px;text-align:center;color:var(--text3)">Nenhuma proposta encontrada</div>'
+    : propostas.map(p => `
+      <div style="padding:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+        <div style="font-weight:600;color:var(--orange)">${p.id.replace('Sal','').replace('2026','')}</div>
+        <div style="color:var(--text);font-weight:500;margin-top:3px">${p.empresa}</div>
+        <div style="color:var(--text2);font-size:10px;margin-top:3px">${p.cidade} · R$ ${p.valor.toLocaleString('pt-BR')}</div>
+        <div style="margin-top:4px"><span class="s-pill ${statusCSS(p.status)}">${p.status}</span></div>
+      </div>
+    `).join('');
+
+  modal.style.display = 'block';
+}
+
+function initCharts() {
+  updateKPIs();
+
+  // Chart 1: Revenue by City (Horizontal Stacked Bar)
+  const ctxCity = document.getElementById('chart-city');
+  if(ctxCity) {
+    if(charts.city) charts.city.destroy();
+
+    const cities = {};
+    const srvMap = { RIT: 'RIT', EIV: 'EIV', 'EIV/RIT': 'EIV/RIT' };
+
+    DADOS.forEach(d => {
+      if(!cities[d.cidade]) cities[d.cidade] = { RIT: 0, EIV: 0, 'EIV/RIT': 0 };
+      cities[d.cidade][d.servico] = (cities[d.cidade][d.servico] || 0) + d.valor;
+    });
+
+    const labels = Object.keys(cities).sort();
+    const ritData = labels.map(c => cities[c]['RIT'] || 0);
+    const eivData = labels.map(c => cities[c]['EIV'] || 0);
+    const eivritData = labels.map(c => cities[c]['EIV/RIT'] || 0);
+
+    charts.city = new Chart(ctxCity, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Serviço 1 (RIT)', data: ritData, backgroundColor: 'var(--orange)', borderWidth: 0 },
+          { label: 'Serviço 2 (EIV)', data: eivData, backgroundColor: 'var(--blue)', borderWidth: 0 },
+          { label: 'Serviço 3 (EIV/RIT)', data: eivritData, backgroundColor: 'var(--purple)', borderWidth: 0 },
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (e, elements) => {
+          if(elements.length > 0) {
+            const idx = elements[0].index;
+            const city = labels[idx];
+            const dataset = elements[0].datasetIndex;
+            const srvMap = ['RIT', 'EIV', 'EIV/RIT'];
+            const srv = srvMap[dataset];
+            const srvLabel = { RIT: 'Serviço 1', EIV: 'Serviço 2', 'EIV/RIT': 'Serviço 3' }[srv];
+            showCityProposals(city, srv, `${city} - ${srvLabel}`);
+          }
+        },
+        plugins: {
+          legend: { labels: { color: 'var(--text2)', font: { size: 9 } }, display: true, position: 'top' }
+        },
+        scales: {
+          x: { stacked: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text3)', font: { size: 8 } } },
+          y: { stacked: true, grid: { display: false }, ticks: { color: 'var(--text2)', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Chart 2: Revenue by Service (Interactive)
+  const ctxService = document.getElementById('chart-service');
+  if(ctxService) {
+    if(charts.service) charts.service.destroy();
+
+    const services = {
+      'RIT': DADOS.filter(d => d.servico === 'RIT').reduce((s,d) => s+d.valor, 0),
+      'EIV': DADOS.filter(d => d.servico === 'EIV').reduce((s,d) => s+d.valor, 0),
+      'EIV/RIT': DADOS.filter(d => d.servico === 'EIV/RIT').reduce((s,d) => s+d.valor, 0),
+    };
+
+    const labels = ['Serviço 1', 'Serviço 2', 'Serviço 3'];
+    const srvKeys = ['RIT', 'EIV', 'EIV/RIT'];
+
+    charts.service = new Chart(ctxService, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: srvKeys.map(k => services[k]),
+          backgroundColor: ['var(--orange)', 'var(--blue)', 'var(--purple)'],
+          borderColor: 'var(--surface)',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (e, elements) => {
+          if(elements.length > 0) {
+            const idx = elements[0].index;
+            const srv = srvKeys[idx];
+            showPropostas(d => d.servico === srv, labels[idx]);
+          }
+        },
+        plugins: {
+          legend: { labels: { color: 'var(--text2)', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Chart 3: Status Distribution (Interactive)
+  const ctxStatus = document.getElementById('chart-status');
+  if(ctxStatus) {
+    if(charts.status) charts.status.destroy();
+
+    const stats = {
+      'Aprovada': DADOS.filter(d => d.status === 'Aprovada').length,
+      'Enviada': DADOS.filter(d => d.status === 'Enviada').length,
+      'Link aberto': DADOS.filter(d => d.status === 'Link aberto').length,
+      'Rascunho': DADOS.filter(d => d.status === 'Rascunho').length,
+    };
+
+    const labels = Object.keys(stats);
+
+    charts.status = new Chart(ctxStatus, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Quantidade',
+          data: labels.map(l => stats[l]),
+          backgroundColor: ['var(--green)', 'var(--blue)', 'var(--orange)', 'var(--text3)'],
+          borderColor: 'var(--border)',
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        indexAxis: 'x',
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (e, elements) => {
+          if(elements.length > 0) {
+            const status = labels[elements[0].index];
+            showPropostas(d => d.status === status, status);
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text3)' } },
+          x: { grid: { display: false }, ticks: { color: 'var(--text2)' } }
+        }
+      }
+    });
+  }
+}
+
+function updateKPIs() {
+  const stats = {
+    aberto: DADOS.filter(d => d.status === 'Rascunho' || d.status === 'Link aberto').length,
+    enviada: DADOS.filter(d => d.status === 'Enviada').length,
+    aprovada: DADOS.filter(d => d.status === 'Aprovada').length,
+    valor: DADOS.reduce((s,d) => s+d.valor, 0),
+  };
+
+  document.getElementById('cp-aberto').textContent = stats.aberto;
+  document.getElementById('cp-enviada').textContent = stats.enviada;
+  document.getElementById('cp-aprov').textContent = stats.aprovada;
+  document.getElementById('cp-valor').textContent = 'R$' + (stats.valor/1000).toFixed(0) + 'k';
+}
+
+applyFilters();
+</script>
+</body>
+</html>
